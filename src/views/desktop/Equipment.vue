@@ -1,6 +1,6 @@
 <template> 
  <div class="block">   
-	 	<el-col :span="20" class="toolbar" style="padding-bottom: 0px;">
+	 	<el-col :span="17" class="toolbar" style="padding-bottom: 0px;">
 			<el-form :inline="true">
 				<el-form-item style="width:300px">
 					<el-input v-model="page.criteria"  @keyup.enter.native="query"  placeholder="请输入设备[编号|名称]" style="width:300px"></el-input>
@@ -15,12 +15,35 @@
 				
 			</el-form>
 		</el-col>
-        <el-col :span="4" class="toolbar" style="padding-bottom: 0px;">
+        <el-col :span="7" class="toolbar" style="padding-bottom: 0px;">
 			<el-form :inline="true">
 				
 				<el-form-item  style="text-align:right">
-					<el-button type="primary" @click="add()">新增</el-button>
+					<!-- <el-button type="primary" @click="add()">新增</el-button> -->
 				</el-form-item>
+                 <el-form-item  style="text-align:right">
+					<el-button type="danger" @click="delete1()">一键删除</el-button>
+				</el-form-item>
+                <el-form-item  style="text-align:right">
+					 <!--  action="https://wx.szrunlifang.com/cms/equipment/addUpload" -->
+                     <el-upload
+                      
+                        class="upload-demo"
+                        action="https://wx.szrunlifang.com/cms/equipment/addUpload"
+                        :data="subData"
+                        :limit="1"
+                        :on-preview="handlePreview"
+                        :on-success="uploadok"
+                        :on-error="uploaderror"
+                        :on-remove="handleRemove"
+                        :file-list="fileList"
+                        list-type="picture">
+                        <el-button  type="primary">一键导入</el-button>
+                       
+                    </el-upload>        
+                </el-form-item>
+               
+
 			</el-form>
 		</el-col>
       
@@ -28,16 +51,31 @@
 		<el-table :data="datalist" highlight-current-row v-loading="listLoading" style="width: 100%;">
 		
 			
-			<el-table-column prop="equNo" label="设备编号" width="200" sortable>
+			<el-table-column prop="equipmentId" label="设备编号" width="200" sortable>
 			</el-table-column>
 			<el-table-column prop="equipmentName" label="设备名称" width="200" sortable>
 			</el-table-column>
-			<el-table-column prop="communityName" label="所属小区" width="200" sortable>
+            <!-- <el-table-column prop="ename" label="设备英文名称" width="200" sortable>
+			</el-table-column> -->
+			<el-table-column prop="communityName" label="所属小区" width="150" sortable>
 			</el-table-column>
+
+            <!-- <el-table-column prop="communityName" label="所属小区" width="150" sortable>
+			</el-table-column> -->
 			<!-- <el-table-column prop="buildingName" label="楼栋" width="150" sortable>
 			</el-table-column> -->
-            <el-table-column prop="equId" label="序列号" width="200" sortable>
+            <el-table-column prop="ip" label="IP" width="200" sortable>
 			</el-table-column>
+            <el-table-column  label="创建时间" min-width="120">
+				<template slot-scope="scope">{{ scope.row.createTime | moment('YYYY-MM-DD') }}</template>
+			</el-table-column>
+            <el-table-column  label="最新设备状态" min-width="150">
+				<template slot-scope="scope"><span class="span" v-if="scope.row.nowDateStatus=='10'" ><i class="tip" style="background:green;"></i>在线</span> <span class="span" v-if="scope.row.nowDateStatus=='20'"><i class="tip" ></i>离线</span></template>
+			</el-table-column>
+             <!-- <el-table-column  label="更新状态时间" min-width="120">
+				<template slot-scope="scope">{{ scope.row.onlineCreateTime | moment('YYYY-MM-DD HH:mm:ss') }}</template>
+			</el-table-column> -->
+
 			<!-- <el-table-column  label="单元" min-width="150" sortable>
                             <template slot-scope="scope">{{scope.row.unitName}} <span v-if="scope.row.unitName!='' && scope.row.unitName!=null ">单元</span></template>    
 			</el-table-column> -->
@@ -53,12 +91,13 @@
 			</el-table-column> -->
 			
 			
-			<el-table-column label="操作" min-width="250">
+			<el-table-column label="操作" min-width="120">
 				<template scope="scope">
 				<!-- <el-button size="small" type="primary"  @click="edit(scope.$index,scope.row)">编辑</el-button>
 				<el-button size="small" type="primary"  v-if='scope.row.sysUserId=="" ||  scope.row.sysUserId ==null' @click="addAdmin(scope.$index,scope.row)">新增物业</el-button>
 				<el-button size="small" type="warning"  v-if='scope.row.sysUserId!="" ||  scope.row.sysUserId !=null' @click="editAdmin(scope.$index,scope.row)">修改物业</el-button> -->
-                <el-button size="small" type="danger" v-if="false" @click="deleteRow(scope.$index, scope.row)">删除</el-button>
+               <el-button size="small" type="warning" v-if="scope.row.state==='10'"   @click="updateState(scope.row,'20')" >禁用</el-button>
+                <el-button size="small" type="success" v-if="scope.row.state==='20'" @click="updateState(scope.row,'10')" >启用</el-button>
                 <!-- <el-button size="small" type="warning" @click="updateRow(scope.$index, scope.row)">替换</el-button> -->
 				</template>
 			</el-table-column>
@@ -180,8 +219,143 @@
         query(){
             this.loadData();
         },
+        submitUpload:function () {
+            this.$refs.upload.submit();
+        },
+        uploadok(res,file){
 
-      add(){
+            
+            
+           this.$message({
+                message:'设备导入成功' ,
+                type: 'success'
+            });  
+            this.fileList = [];
+
+          this.loadData();
+        },
+
+        uploaderror(){
+            alert("上传异常");
+        },
+        handleRemove(file, fileList) {
+            console.log(file, fileList);
+        },
+        handlePreview(file) {
+            alert(file);
+            console.log(file);
+        },
+        uploadSuccess:function(response, file, fileList) {
+            console.log("上传文件成功response" +response);
+            console.log("上传文件成功file" +file);
+            console.log("上传文件成功fileList" +fileList);
+            // response：即为后端传来的数据，这里我返回的是图片的路径
+            app.user.userImage=response;
+        },
+        uploadError:function (response, file, fileList) {
+
+            console.log("上传文件失败response" +response);
+            console.log("上传文件失败file" +file);
+            console.log("上传文件失败fileList" +fileList);
+        },
+        delete1(){
+
+             this.$confirm('该操作会删除现有数据,谨慎操作, 是否继续?', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+            }).then(() => {
+               
+
+                var opt ={
+                    communityId:sessionStorage.getItem("communityId")
+                    
+                }
+
+                RequestPost("/equipment/deleteAll",opt).then(response => {
+                            
+                          
+                    if(response.code=='0000'){
+                        this.$message({
+                            message: response.message,
+                            type: 'success'
+                        });  
+                        //this.dialogFormVisible = false;
+                    }else{
+                        this.$message({
+                            message: response.message,
+                            type: 'error'
+                        });
+                    }
+                    this.loadData();
+                }).catch(error => {
+                this.$router.push({ path: '/login' });
+                })
+
+
+                
+               // this.dialogFormVisible = false;
+                
+                }).catch(() => {
+                this.$message({
+                    type: 'info',
+                    message: '已取消删除'
+                });          
+            });
+
+
+
+        },
+        updateState(rows,state){
+
+           this.$confirm('确认该操作, 是否继续?', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+            }).then(() => {
+               
+
+                var opt ={
+                    communityId:rows.communityId,
+                    id:rows.id,
+                    state:state
+                }
+
+                RequestPost("/equipment/updateState",opt).then(response => {
+                            
+                          
+                    if(response.code=='0000'){
+                        this.$message({
+                            message: response.message,
+                            type: 'success'
+                        });  
+                        this.dialogFormVisible = false;
+                    }else{
+                        this.$message({
+                            message: response.message,
+                            type: 'error'
+                        });
+                    }
+                    this.loadData();
+                }).catch(error => {
+                this.$router.push({ path: '/login' });
+                })
+
+
+                
+                this.dialogFormVisible = false;
+                
+                }).catch(() => {
+                this.$message({
+                    type: 'info',
+                    message: '已取消删除'
+                });          
+            });
+
+
+
+      },
+       add(){
            this.dialogFormVisible = true;
 		   this.formtitle ="新增设备";   
 		   this.subData = {}; 
@@ -549,13 +723,29 @@
 	},
 	//1
 	created:function(){
-		//3
-		this.loadData();
+        //3
+
+        
+        setInterval(() => {
+          this.page.pageNumber =1;  
+         this.datalist=[];
+         this.currentPage=1;
+         this.total = 1;
+          this.loadData();
+        }, 60000);
+        
+        
+
+
+        this.loadData();
+       // alert(sessionStorage.getItem("communityId"));
+        this.subData.communityId = sessionStorage.getItem("communityId"); 
 		
 	
 	},
     data() {
       return {
+       
 		total:0,     //数据的总数量
 		totalsize:0,  //总的页数 = 总数量/每页显示的条数
 		currentPage:1,
@@ -563,7 +753,8 @@
 			pageSize:PageSize,   //一页显示的条数
             criteria:''
 		},
-		datalist:[],
+        datalist:[],
+        fileList: [],
 		
 		listLoading: false,
         form:{},

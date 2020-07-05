@@ -39,10 +39,10 @@
 			</el-table-column>
 			<el-table-column prop="mobile" label="手机号" width="250" sortable>
 			</el-table-column>
-            <el-table-column  label="厂商编号" width="250" sortable>
+            <!-- <el-table-column  label="厂商编号" width="250" sortable>
                     <template slot-scope="scope">0x{{ scope.row.code.toString(16)}}({{ scope.row.code}})</template>
 
-			</el-table-column>
+			</el-table-column> -->
 			<el-table-column  label="创建时间" min-width="120">
 				<template slot-scope="scope">{{ scope.row.createTime | moment('YYYY-MM-DD') }}</template>
 			</el-table-column>
@@ -83,11 +83,11 @@
                         <el-input v-model="subData.loginName"  placeholder="请输入登录名"></el-input>
                     </el-form-item>
                     <el-form-item label="*密码">
-                      <el-input v-bind:disabled="isEdit" v-model="subData.password"  placeholder="请输入密码"></el-input>
+                      <el-input  v-model="subData.password"  placeholder="请输入密码"></el-input>
                     </el-form-item>
-                     <el-form-item label="*厂商编号">
+                     <!-- <el-form-item label="*厂商编号">
                       <el-input type="number" v-bind:disabled="isEdit" v-model="subData.code"  placeholder="请输入厂商编号"></el-input>
-                    </el-form-item>
+                    </el-form-item> -->
                      <el-form-item label="手机号">
                         <el-input v-model="subData.mobile"  placeholder="请输入手机号"></el-input>
                     </el-form-item>

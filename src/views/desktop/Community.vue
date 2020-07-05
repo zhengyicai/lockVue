@@ -1,6 +1,6 @@
 <template> 
- <div class="block">   
-	 	<el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
+ <div class="block" style="padding-top:10px">   
+	 	<el-col v-if='adminshow==false' :span="24" class="toolbar" style="padding-bottom: 0px;">
 			<el-form :inline="true" style="text-align:right" >
 				<!-- <el-form-item>
 					<el-input  placeholder="姓名"></el-input>
@@ -46,20 +46,24 @@
 			<el-table-column label="物业员状态" min-width="110">
 				<template slot-scope="scope">{{ state(scope.row.userStatus)}}</template>
 			</el-table-column>
-			<el-table-column prop="code" label="厂商编号" min-width="110">
+			<el-table-column prop="userWorkName" label="厂商用户名" min-width="110">
 			</el-table-column>
 			<!-- <el-table-column prop="userWorkName" label="工程商用户名" min-width="150" sortable>
 			</el-table-column>
 			<el-table-column label="工程商状态" min-width="120">
 				<template slot-scope="scope">{{ state(scope.row.userWorkStatus)}}</template>
 			</el-table-column> -->
-			<el-table-column label="操作" min-width="340">
+			<el-table-column label="操作" min-width="240">
 				<template scope="scope">
-				<el-button size="small" type="primary"  @click="editWork(scope.$index,scope.row)">工程商</el-button>
-				<el-button size="small" type="primary"  @click="edit(scope.$index,scope.row)">编辑</el-button>
-				<el-button size="small" type="primary"  v-if='scope.row.sysUserId=="" ||  scope.row.sysUserId ==null' @click="addAdmin(scope.$index,scope.row)">新增物业</el-button>
-				<el-button size="small" type="warning"  v-if='scope.row.sysUserId!="" &&  scope.row.sysUserId !=null' @click="editAdmin(scope.$index,scope.row)">修改物业</el-button>
-                <!-- <el-button size="small" type="danger" @click="deleteRow(scope.$index, scope.row)">删除</el-button> -->
+				<!-- <el-button size="small" type="primary"  @click="editWork(scope.$index,scope.row)">工程商</el-button> -->
+
+				
+				<el-button size="small" type="primary" v-if='adminshow==false'  @click="edit(scope.$index,scope.row)">编辑</el-button>
+				<el-button size="small" type="primary"  v-if='adminshow==false &&   (scope.row.sysUserId=="" ||  scope.row.sysUserId ==null)' @click="addAdmin(scope.$index,scope.row)">新增物业</el-button>
+				<el-button size="small" type="warning"  v-if='adminshow==false && (scope.row.sysUserId!="" &&  scope.row.sysUserId !=null)' @click="editAdmin(scope.$index,scope.row)">修改物业</el-button>
+                <el-button size="small" type="warning" v-if="scope.row.userStatus==='10'"   @click="updateState(scope.row,'20')" >禁用</el-button>
+                <el-button size="small" type="success" v-if="scope.row.userStatus==='20'" @click="updateState(scope.row,'10')" >启用</el-button>
+				<!-- <el-button size="small" type="danger" @click="deleteRow(scope.$index, scope.row)">删除</el-button> -->
 				</template>
 			</el-table-column>
 		</el-table>
@@ -108,12 +112,12 @@
 				<el-form-item label="地址">
 					<el-input v-model="form.address"></el-input>
 				</el-form-item>
-				<el-form-item label="状态">
+				<!-- <el-form-item label="状态">
 					<el-radio-group v-model="form.state">
 						<el-radio label="10">正常</el-radio>
 						<el-radio label="20">禁用</el-radio>
 					</el-radio-group>
-				</el-form-item>
+				</el-form-item> -->
 
 			</el-form>
 			<div slot="footer" class="dialog-footer">
@@ -151,7 +155,7 @@
 
 			</el-form>
 			<div slot="footer" class="dialog-footer">
-				<el-button @click="dialogFormVisible = false">取 消</el-button>
+				<el-button @click="dialogFormAdminVisible = false">取 消</el-button>
 				<el-button type="primary" @click="openAdmin()">确 定</el-button>
 			</div>
         </el-dialog>
@@ -172,7 +176,7 @@
 
 			</el-form>
 			<div slot="footer" class="dialog-footer">
-				<el-button @click="dialogFormVisible = false">取 消</el-button>
+				<el-button @click="dialogFormAdminUpdateVisible = false">取 消</el-button>
 				<el-button type="primary" @click="openAdmin()">确 定</el-button>
 			</div>
         </el-dialog>
@@ -239,6 +243,52 @@
 
 
 	  },
+
+	  updateState(rows,state){
+
+           this.$confirm('确认该操作, 是否继续?', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+            }).then(() => {
+               
+                var opt ={
+                    loginName:rows.loginName,
+                    state:state
+                }
+
+                RequestPost("/user/updateStatus",opt).then(response => {
+                            
+                          
+                    if(response.code=='0000'){
+                        this.$message({
+                            message: response.message,
+                            type: 'success'
+                        });  
+                        this.dialogFormVisible = false;
+                    }else{
+                        this.$message({
+                            message: response.message,
+                            type: 'error'
+                        });
+                    }
+                    this.loadData();
+                }).catch(error => {
+                this.$router.push({ path: '/login' });
+                })
+
+
+                
+                this.dialogFormVisible = false;
+                
+                }).catch(() => {
+                this.$message({
+                    type: 'info',
+                    message: '已取消删除'
+                });          
+            });
+
+      },
 	  deleteRow(index, rows) {
        this.$confirm('是否确认删除该文件, 是否继续?', '提示', {
             confirmButtonText: '确定',
@@ -388,6 +438,7 @@
 				  if(this.valuidate2() ==false){
 					  return;
 				  }
+				  this.form1.state="20";
 				  this.$confirm('添加物业账号, 是否继续?', '提示', {
 					confirmButtonText: '确定',
 					cancelButtonText: '取消',
@@ -793,6 +844,12 @@
 		
 		//一
 		this.loadProvince();
+
+		if("admin"==sessionStorage.getItem("loginName")){
+			this.adminshow = true;
+		}else{
+			this.adminshow = false;
+		}
 	},
     data() {
       return {
@@ -818,7 +875,8 @@
 		dialogFormAdminUpdateVisible:false,
 		dialogFormWorkVisible:false,  //工程商
 		isEditUser:false, //是否禁用
-		warningText:"" //警告语
+		warningText:"", //警告语
+		adminshow:""
 
 
       };

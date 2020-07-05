@@ -8,9 +8,9 @@
 				<el-form-item  >
 					<el-button type="primary" v-on:click="query">查询</el-button>
 				</el-form-item>
-                <el-form-item  >
+                <!-- <el-form-item  >
 					<el-button type="success" v-on:click="querySys">查看物业开锁记录</el-button>
-				</el-form-item>
+				</el-form-item> -->
 				
 				
 			</el-form>
@@ -19,27 +19,23 @@
       
         
 		<el-table :data="datalist" highlight-current-row v-loading="listLoading" style="width: 100%;">
-            <el-table-column prop="communityName" label="小区名字" width="200" sortable>
-			</el-table-column>
-            <el-table-column prop="userName" label="用户名" width="200" sortable>
-			</el-table-column>
-          
-
-            <el-table-column  label="(用户/物业)手机号" min-width="200" sortable>
-                            <template slot-scope="scope">{{scope.row.mobile}}{{scope.row.mobile1}}</template>    
+            
+           
+            <el-table-column  label="手机号" min-width="200" sortable>
+                            <template slot-scope="scope">{{scope.row.phone}}</template>    
 			</el-table-column>
 
-			 <el-table-column   label="用户房号" min-width="200" sortable>
-                          
-							<template slot-scope="scope"   >
-								<span v-if="scope.row.mobile!='' && scope.row.mobile!=null ">{{scope.row.roomNo.substring(6,8)}}栋{{scope.row.roomNo.substring(8,10)}}单元{{scope.row.roomNo.substring(10,14)}}房间</span>
-								<span v-if="scope.row.mobile==null ">物业</span>
-							</template>    
-							
+            <el-table-column prop="communityId" label="小区编号" width="200" sortable>
+			</el-table-column>
+
+			<el-table-column prop="equipmentName" label="设备名称" width="200" sortable>
 			</el-table-column>
 
 
-            <el-table-column prop="roomNo" label="用户编号" width="200" sortable>
+			 <el-table-column prop="deviceCode" label="设备编号" width="200" sortable>
+			</el-table-column>
+
+			 <el-table-column prop="roomNumber" label="房间号" width="200" sortable>
 			</el-table-column>
 
 
@@ -67,7 +63,9 @@
           
 			
 			<el-table-column label="操作" min-width="100">
-				
+				<template scope="scope">
+				 <el-button size="small" type="primary"   @click="select(scope.row)">查看图片</el-button>
+				</template> 
 			</el-table-column>
 		</el-table>
 
@@ -80,6 +78,15 @@
 			:total="total" 
 		>
 		</el-pagination>
+
+
+		<el-dialog  title="查看图片" :visible.sync="dialogFormVisibleRoom" >
+			<img :src="imgUrl" style="width:100%;480px;">	
+			<div slot="footer" class="dialog-footer">
+				<el-button @click="dialogFormVisibleRoom = false">取 消</el-button>
+			</div>
+		
+        </el-dialog>
 
         
 		 
@@ -138,13 +145,22 @@
 
       
      
-      getUsers(){},
+	  getUsers(){},
+	  
+
+	  select(row){
+
+
+		  this.imgUrl= "http://image.szrunlifang.com"+row.file;
+
+		  this.dialogFormVisibleRoom = true;	
+
+
+	  },
 
 
       
 	 
-     
-
 	
 	loadData(){
 
@@ -205,7 +221,9 @@
         communityId:"",
         buildingId:"",
         unitNo:"",
-        formtitle:""
+		formtitle:"",
+		dialogFormVisibleRoom:false,
+		imgUrl:""
         
 
       };
@@ -214,7 +232,8 @@
 </script>
 <style>
 	.el-dialog--small {
-		 width: 30%; 
+		 width: 650px; 
+		 text-align: center;
 	}
     .span {
         position:relative;

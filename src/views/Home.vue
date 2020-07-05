@@ -12,7 +12,8 @@
 			</el-col>
 			<el-col :span="4" class="userinfo">
 				<el-dropdown trigger="hover">
-					<span class="el-dropdown-link userinfo-inner"><img src="https://raw.githubusercontent.com/taylorchen709/markdown-images/master/vueadmin/user.png" /> {{sysUserName}}</span>
+					
+					<span class="el-dropdown-link userinfo-inner"><img src="./../assets/user.png" /> {{sysUserName}}</span>
 					<el-dropdown-menu slot="dropdown">
 						<el-dropdown-item>我的消息</el-dropdown-item>
 						<el-dropdown-item @click.native="updatePwd">修改密码</el-dropdown-item>
@@ -78,7 +79,7 @@
 	export default {
 		data() {
 			return {
-				sysName:'智能门禁管理平台',
+				sysName:'门禁通管理平台',
 				sysNo:'v1.0.0',
 				collapsed:false,
 				sysUserName: '',
@@ -103,6 +104,7 @@
 				sessionStorage.setItem("communityId",response.data.communityId);
 				sessionStorage.setItem("userId",response.data.id);
 				sessionStorage.setItem("code",response.data.code);
+				sessionStorage.setItem("loginName",response.data.loginName);
 				 this.sysUserAvatar = "";
 				 
 				 var person = {

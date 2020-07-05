@@ -548,6 +548,7 @@
             this.subData1.communityId = sessionStorage.getItem("communityId");
             this.subData1.userId = sessionStorage.getItem("userId");
             this.subData1.id = this.residentId;
+          
             if(!this.updateDate){
                 RequestPost("/user/addResidentEquipment",this.subData1).then(response => {
                             if(response.code=='0000'){

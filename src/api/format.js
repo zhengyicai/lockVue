@@ -17,7 +17,7 @@ export function dateFormat(row,column){
 
 export function state(row){
     var date = row;
-          return date =='10'?'正常':date =='20'?'禁用':'';
+          return date =='10'?'正常':date =='20'?'禁用':date =='30'?'待审核':'';
 };
 
 export function recordType(row){
